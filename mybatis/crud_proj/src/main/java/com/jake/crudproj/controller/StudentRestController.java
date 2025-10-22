@@ -53,6 +53,28 @@ public class StudentRestController {
 		return "redirect:/students";
 	}
 	
+	// 새 학생 등록 form
+	@GetMapping("/{id}/edit")
+	public String updateForm(@PathVariable Long id, Model model) {
+		model.addAttribute("student", studentService.getStudent(id));
+		return "student/form";
+	}
+	
+	// 수정처리
+	@PostMapping("/{id}")
+	public String update(@PathVariable Long id, @ModelAttribute Student student) {
+		student.setId(id);
+		studentService.updateStudent(student);
+		return "redirect:/students";
+	}
+	
+	// 삭제 처리
+	@PostMapping("/{id}/delete")
+	public String delete(@PathVariable Long id) {
+		studentService.deleteStudent(id);
+		return "redirect:/students";
+	}
+	
 	
 	
 	/*

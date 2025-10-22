@@ -1,5 +1,7 @@
-package com.jake.student.crud;
+package com.jake.student.crud.svccontroller;
 
+import com.jake.student.crud.Student;
+import com.jake.student.crud.StudentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
