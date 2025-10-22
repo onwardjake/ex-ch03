@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jake.student.crud.StudentMapper">
+    <select id="selectAll" resultType="Student">
+        SELECT * FROM student ORDER BY id DESC
+    </select>
+    <select id="selectById" parameterType="long" resultType="Student">
+        SELECT * FROM student WHERE id = #{id}
+    </select>
+
+    <insert id="create" parameterType="Student" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO student(name, email, age)
+            VALUES( #{name}, #{email}, #{age} )
+    </insert>
+
+    <update id="update" parameterType="Student">
+        UPDATE student
+            SET name=#{name}, email=#{email}, age=#{age}
+            WHERE id=#{id}
+    </update>
+
+    <delete id="delete" parameterType="long">
+        DELETE FROM student WHERE id=#{id}
+    </delete>
+
+</mapper>
