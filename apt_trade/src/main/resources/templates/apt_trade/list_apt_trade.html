@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>아파트 실거래가 조회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg:#0b0f14; --panel:#111821; --muted:#6b7785; --text:#e6edf3; --accent:#38bdf8; }
+        *{ box-sizing:border-box; }
+        body{ margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif; background:var(--bg); color:var(--text); }
+        header{ padding:20px 24px; border-bottom:1px solid #1e2936; position:sticky; top:0; background:rgba(11,15,20,.9); backdrop-filter:saturate(1.2) blur(6px); }
+        h1{ margin:0; font-size:20px; letter-spacing:.2px; }
+        .container{ max-width:1200px; margin:0 auto; padding:24px; }
+        .card{ background:var(--panel); border:1px solid #1e2936; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+        .card-header{ padding:16px 20px; border-bottom:1px solid #1e2936; font-weight:600; }
+        .card-body{ padding:16px 20px; }
+        .row{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; }
+        .col-2{ grid-column: span 2; } .col-3{ grid-column: span 3; } .col-4{ grid-column: span 4; } .col-6{ grid-column: span 6; } .col-12{ grid-column: span 12; }
+        label{ display:block; font-size:12px; color:var(--muted); margin:0 0 6px 2px; }
+        input, select{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #263445; background:#0e141c; color:var(--text); outline:none; }
+        input::placeholder{ color:#7a8696; }
+        .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+        button, .btn{ padding:10px 14px; border-radius:10px; border:1px solid #2b3a4d; background:#0f1722; color:var(--text); cursor:pointer; }
+        .btn-primary{ background:linear-gradient(180deg, #38bdf8, #0ea5e9); border:0; color:#001018; font-weight:600; }
+        .btn-outline{ background:transparent; }
+        table{ width:100%; border-collapse:collapse; font-size:13px; }
+        th, td{ padding:10px 12px; border-bottom:1px solid #1e2936; }
+        th{ text-align:left; color:#9fb0c3; font-weight:600; position:sticky; top:66px; background:var(--panel); }
+        tbody tr:hover{ background:#0f1620; }
+        .muted{ color:#8aa0b7; }
+        .pill{ font-size:11px; padding:4px 8px; border:1px solid #28455a; border-radius:999px; color:#a7d8f5; background:#0b1822; }
+        .pagination{ display:flex; gap:6px; justify-content:center; padding:16px; }
+        .pagination a{ padding:8px 12px; border:1px solid #253547; border-radius:8px; color:var(--text); text-decoration:none; }
+        .pagination .active{ background:#163349; border-color:#2a4e6b; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>아파트 실거래가 조회</h1>
+</header>
+<div class="container">
+    <section class="card">
+        <div class="card-header">검색 필터</div>
+        <div class="card-body">
+            <!-- GET 폼: /apt-trades?sigungu=...&aptName=... -->
+            <form th:action="@{/apt-trades}" method="get">
+                <div class="row">
+                    <div class="col-3">
+                        <label for="sigungu">시군구</label>
+                        <input id="sigungu" name="sigungu" type="text" placeholder="예: 의왕시"
+                               th:value="${param.sigungu}" />
+                    </div>
+                    <div class="col-3">
+                        <label for="aptName">아파트명</label>
+                        <input id="aptName" name="aptName" type="text" placeholder="예: 인덕원삼호"
+                               th:value="${param.aptName}" />
+                    </div>
+                    <div class="col-2">
+                        <label for="exclusiveAreaM2">전용면적(㎡)</label>
+                        <input id="exclusiveAreaM2" name="exclusiveAreaM2" type="number" step="0.01" min="0"
+                               th:value="${param.exclusiveAreaM2}" />
+                    </div>
+                    <div class="col-2">
+                        <label for="contractYearMonth">계약년월(YYYYMM)</label>
+                        <input id="contractYearMonth" name="contractYearMonth" type="number" inputmode="numeric" placeholder="202501"
+                               th:value="${param.contractYearMonth}" />
+                    </div>
+                    <div class="col-2">
+                        <label for="contractDate">계약일(YYYY-MM-DD)</label>
+                        <input id="contractDate" name="contractDate" type="date" th:value="${param.contractDate}" />
+                    </div>
+                    <div class="col-2">
+                        <label for="buildYear">건축년도</label>
+                        <input id="buildYear" name="buildYear" type="number" inputmode="numeric" placeholder="2003"
+                               th:value="${param.buildYear}" />
+                    </div>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-outline" th:href="@{/apt-trades}">초기화</a>
+                    <button class="btn btn-primary" type="submit">검색</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+        <div class="card-header">
+            검색 결과 <span class="muted" th:text="${#numbers.formatInteger(total, 0, 'COMMA')} + '건'"></span>
+        </div>
+        <div class="card-body">
+            <table>
+                <thead>
+                <tr>
+                    <th>시군구</th>
+                    <th>아파트</th>
+                    <th>면적(㎡/평)</th>
+                    <th>계약일</th>
+                    <th>층</th>
+                    <th>거래금액(만원)</th>
+                    <th>건축년도</th>
+                    <th>도로명</th>
+                    <th>해제</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(items)}">
+                    <td colspan="9" class="muted">검색 결과가 없습니다.</td>
+                </tr>
+                <tr th:each="row : ${items}">
+                    <td th:text="${row.sigungu}"></td>
+                    <td>
+                        <span th:text="${row.aptName}"></span>
+                        <span class="pill" th:if="${row.aptType != null}" th:text="${row.aptType}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${#numbers.formatDecimal(row.exclusiveAreaM2, 1, 2)}"></span>
+                        <span class="muted" th:text="' / ' + ${#numbers.formatDecimal(row.exclusiveAreaPyeong, 1, 2)}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${#temporals.format(row.contractDate, 'yyyy-MM-dd')}"></span>
+                        <span class="muted" th:text="' (' + ${row.contractYearmonth} + ')' "></span>
+                    </td>
+                    <td th:text="${row.floor}"></td>
+                    <td th:text="${#numbers.formatInteger(row.dealAmount10k, 0, 'COMMA')}"></td>
+                    <td th:text="${row.buildYear}"></td>
+                    <td th:text="${row.roadName}"></td>
+                    <td th:text="${row.cancelYn}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination" th:if="${totalPages > 1}">
+                <a th:classappend="${page == 0}? 'active'" th:href="@{/apt-trades(page=0, size=${size}, sigungu=${param.sigungu}, aptName=${param.aptName}, exclusiveAreaM2=${param.exclusiveAreaM2}, contractYearMonth=${param.contractYearMonth}, contractDate=${param.contractDate}, buildYear=${param.buildYear})}">처음</a>
+                <a th:if="${page > 0}"
+                   th:href="@{/apt-trades(page=${page-1}, size=${size}, sigungu=${param.sigungu}, aptName=${param.aptName}, exclusiveAreaM2=${param.exclusiveAreaM2}, contractYearMonth=${param.contractYearMonth}, contractDate=${param.contractDate}, buildYear=${param.buildYear})}">이전</a>
+                <a th:if="${page+1 < totalPages}"
+                   th:href="@{/apt-trades(page=${page+1}, size=${size}, sigungu=${param.sigungu}, aptName=${param.aptName}, exclusiveAreaM2=${param.exclusiveAreaM2}, contractYearMonth=${param.contractYearMonth}, contractDate=${param.contractDate}, buildYear=${param.buildYear})}">다음</a>
+                <a th:classappend="${page+1 == totalPages}? 'active'"
+                   th:href="@{/apt-trades(page=${totalPages-1}, size=${size}, sigungu=${param.sigungu}, aptName=${param.aptName}, exclusiveAreaM2=${param.exclusiveAreaM2}, contractYearMonth=${param.contractYearMonth}, contractDate=${param.contractDate}, buildYear=${param.buildYear})}">마지막</a>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+</html>

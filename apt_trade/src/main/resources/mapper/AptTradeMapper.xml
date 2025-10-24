@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jake.apt.trade.mapper.AptTradeMapper">
+
+    <resultMap id="AptTradeResultMap" type="com.jake.apt.trade.dto.AptTrade">
+        <id     property="id"                 column="id"/>
+        <result property="lawdCd"             column="lawd_cd"/>
+        <result property="sigungu"            column="sigungu"/>
+        <result property="jibun"              column="jibun"/>
+        <result property="jibunBonbun"        column="jibun_bonbun"/>
+        <result property="jibunBubun"         column="jibun_bubun"/>
+        <result property="aptName"            column="apt_name"/>
+        <result property="exclusiveAreaM2"    column="exclusive_area_m2"/>
+        <result property="exclusiveAreaPyeong" column="exclusive_area_pyeong"/>
+        <result property="contractYearmonth"  column="contract_yearmonth"/>
+        <result property="contractDay"        column="contract_day"/>
+        <result property="contractDate"       column="contract_date"/>
+        <result property="dealAmount10k"      column="deal_amount_10k"/>
+        <result property="dealAmountKrw"      column="deal_amount_krw"/>
+        <result property="dong"               column="dong"/>
+        <result property="floor"              column="floor"/>
+        <result property="buildYear"          column="build_year"/>
+        <result property="roadName"           column="road_name"/>
+        <result property="cancelYn"           column="cancel_yn"/>
+        <result property="cancelDate"         column="cancel_date"/>
+        <result property="tradeType"          column="trade_type"/>
+        <result property="brokerArea"         column="broker_area"/>
+        <result property="aptType"            column="apt_type"/>
+    </resultMap>
+
+    <!-- 공통 WHERE 절 -->
+    <sql id="AptTradeWhere">
+        <where>
+            <if test="sigungu != null and sigungu != ''">
+                AND sigungu LIKE CONCAT('%', #{sigungu}, '%')
+            </if>
+
+            <if test="aptName != null and aptName != ''">
+                AND apt_name LIKE CONCAT('%', #{aptName}, '%')
+            </if>
+
+            <!-- 전용면적: 단일값 또는 범위 둘 다 지원 -->
+            <if test="exclusiveAreaM2 != null">
+                AND exclusive_area_m2 = #{exclusiveAreaM2}
+            </if>
+            <if test="exclusiveAreaM2Min != null">
+                AND exclusive_area_m2 &gt;= #{exclusiveAreaM2Min}
+            </if>
+            <if test="exclusiveAreaM2Max != null">
+                AND exclusive_area_m2 &lt;= #{exclusiveAreaM2Max}
+            </if>
+
+            <!-- 계약년월: 단일 또는 범위 -->
+            <if test="contractYearMonth != null">
+                AND contract_yearmonth = #{contractYearMonth}
+            </if>
+            <if test="contractYearMonthFrom != null">
+                AND contract_yearmonth &gt;= #{contractYearMonthFrom}
+            </if>
+            <if test="contractYearMonthTo != null">
+                AND contract_yearmonth &lt;= #{contractYearMonthTo}
+            </if>
+
+            <!-- 계약일: 단일 또는 기간 -->
+            <if test="contractDate != null">
+                AND contract_date = #{contractDate}
+            </if>
+            <if test="contractDateFrom != null">
+                AND contract_date &gt;= #{contractDateFrom}
+            </if>
+            <if test="contractDateTo != null">
+                AND contract_date &lt;= #{contractDateTo}
+            </if>
+
+            <!-- 건축년도: 단일 또는 범위 -->
+            <if test="buildYear != null">
+                AND build_year = #{buildYear}
+            </if>
+            <if test="buildYearFrom != null">
+                AND build_year &gt;= #{buildYearFrom}
+            </if>
+            <if test="buildYearTo != null">
+                AND build_year &lt;= #{buildYearTo}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 정렬 화이트리스트: 허용된 컬럼만 매핑 -->
+    <sql id="OrderBySafe">
+        <choose>
+            <when test="sort == 'contractDate'"> ORDER BY contract_date </when>
+            <when test="sort == 'contractYearMonth'"> ORDER BY contract_yearmonth </when>
+            <when test="sort == 'dealAmount10k'"> ORDER BY deal_amount_10k </when>
+            <when test="sort == 'exclusiveAreaM2'"> ORDER BY exclusive_area_m2 </when>
+            <when test="sort == 'buildYear'"> ORDER BY build_year </when>
+            <when test="sort == 'aptName'"> ORDER BY apt_name </when>
+            <otherwise> ORDER BY contract_date </otherwise>
+        </choose>
+        <choose>
+            <when test="dir == 'asc'"> ASC </when>
+            <otherwise> DESC </otherwise>
+        </choose>
+    </sql>
+
+    <!-- 총 건수 -->
+    <select id="countAptTrades" parameterType="map" resultType="long">
+        SELECT COUNT(*) FROM apt_trade
+        <include refid="AptTradeWhere"/>
+    </select>
+
+    <!-- 목록 조회 (페이지네이션) -->
+    <select id="selectAptTrades" parameterType="map" resultMap="AptTradeResultMap">
+        SELECT
+        id,
+        lawd_cd,
+        sigungu,
+        jibun,
+        jibun_bonbun,
+        jibun_bubun,
+        apt_name,
+        exclusive_area_m2,
+        exclusive_area_pyeong,
+        contract_yearmonth,
+        contract_day,
+        contract_date,
+        deal_amount_10k,
+        deal_amount_krw,
+        dong,
+        floor,
+        build_year,
+        road_name,
+        cancel_yn,
+        cancel_date,
+        trade_type,
+        broker_area,
+        apt_type
+        FROM apt_trade
+        <include refid="AptTradeWhere"/>
+        <include refid="OrderBySafe"/>
+        <if test="limit != null and offset != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+</mapper>
