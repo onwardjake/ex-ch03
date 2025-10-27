@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Controller
-@RequestMapping("/list")
+@RequestMapping("/apt-trades")
 @RequiredArgsConstructor
 public class AptTradeController {
     private final AptTradeService aptTradeService;
